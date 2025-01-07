@@ -1,4 +1,4 @@
-package com.noah.taskmanager.post;
+package com.noah.taskmanager;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.noah.taskmanager.config.TestSecurityConfig;

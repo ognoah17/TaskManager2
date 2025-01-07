@@ -1,13 +1,13 @@
-package dev.danvega.danson.post;
+package com.noah.taskmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import dev.danvega.danson.config.TestSecurityConfig;
-import dev.danvega.danson.model.TaskEntity;
-import dev.danvega.danson.model.User;
-import dev.danvega.danson.model.enumEntity.Role;
-import dev.danvega.danson.model.enumEntity.TaskPriority;
-import dev.danvega.danson.model.enumEntity.TaskStatus;
+import com.noah.taskmanager.config.TestSecurityConfig;
+import com.noah.taskmanager.model.TaskEntity;
+import com.noah.taskmanager.model.User;
+import com.noah.taskmanager.model.enumEntity.Role;
+import com.noah.taskmanager.model.enumEntity.TaskPriority;
+import com.noah.taskmanager.model.enumEntity.TaskStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
