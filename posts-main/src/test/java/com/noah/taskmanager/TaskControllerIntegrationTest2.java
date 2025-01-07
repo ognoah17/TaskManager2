@@ -132,4 +132,25 @@ class TaskControllerIntegrationTest2 {
 
         System.out.println("Updated Task: " + updateResponse.getBody());
     }
+
+    @Test
+    void testDeleteTask() {
+        // Step 1: Create a User
+        String randomEmail = "test+" + UUID.randomUUID() + "@example.com";
+        User mockUser = new User(1L, randomEmail, "password", Role.USER);
+        ResponseEntity<User> userResponse = restTemplate.postForEntity(baseUrl("/api/users"), mockUser, User.class);
+        assertThat(userResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(userResponse.getBody()).isNotNull();
+
+        // Step 2: Create a TaskEntity
+        LocalDateTime dueDate = LocalDateTime.now().plusDays(1);
+        TaskEntity task = new TaskEntity("Task to Delete", "Description", TaskPriority.MEDIUM, dueDate, TaskStatus.PENDING, userResponse.getBody());
+        ResponseEntity<TaskEntity> createResponse = restTemplate.postForEntity(baseUrl("/api/tasks"), task, TaskEntity.class);
+        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(createResponse.getBody()).isNotNull();
+
+        TaskEntity createdTask = createResponse.getBody();
+        System.out.println("Mock Task Created: " + createdTask);
+    }
+
 }

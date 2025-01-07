@@ -1,5 +1,6 @@
 package com.noah.taskmanager.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.noah.taskmanager.model.enumEntity.TaskPriority;
 import com.noah.taskmanager.model.enumEntity.TaskStatus;
 import jakarta.persistence.*;
@@ -55,6 +56,7 @@ public class TaskEntity {
     private TaskStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

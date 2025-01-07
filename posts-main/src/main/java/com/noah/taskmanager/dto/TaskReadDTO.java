@@ -67,4 +67,15 @@ public class TaskReadDTO {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
+
+    public TaskReadDTO(Long taskId, String taskName, String description, String priority, String status, LocalDateTime dueDate, Long userId) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.description = description;
+        this.priority = priority;
+        this.status = status;
+        this.dueDate = dueDate;
+        this.userId = userId;
+    }
+
 }

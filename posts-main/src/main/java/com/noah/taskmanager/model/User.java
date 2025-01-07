@@ -1,5 +1,6 @@
 package com.noah.taskmanager.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.noah.taskmanager.model.enumEntity.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -38,18 +39,30 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<TaskEntity> tasks = new HashSet<>();
 
-    // Constructors
+    // Default Constructor
     public User() {
-        // Default constructor for JPA
+        // Required for JPA
     }
 
+    // Constructor without tasks
     public User(Long userid, String email, String password, Role role) {
         this.userid = userid;
         this.email = email;
         this.password = password;
         this.role = role;
+        this.tasks = new HashSet<>();
+    }
+
+    // Full Constructor
+    public User(Long userid, String email, String password, Role role, Set<TaskEntity> tasks) {
+        this.userid = userid;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.tasks = tasks != null ? tasks : new HashSet<>();
     }
 
     // PrePersist and PreUpdate for Email Normalization

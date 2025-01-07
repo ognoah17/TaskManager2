@@ -8,6 +8,14 @@ public class ReminderReadDTO {
     private Long taskId; // Reference task by ID
     private Long userId; // Reference user by ID
 
+    // Constructor
+    public ReminderReadDTO(Long reminderId, LocalDateTime reminderTime, Long taskId, Long userId) {
+        this.reminderId = reminderId;
+        this.reminderTime = reminderTime;
+        this.taskId = taskId;
+        this.userId = userId;
+    }
+
     // Getters and Setters
     public Long getReminderId() {
         return reminderId;

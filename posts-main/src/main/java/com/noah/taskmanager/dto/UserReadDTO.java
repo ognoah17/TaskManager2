@@ -5,6 +5,13 @@ public class UserReadDTO {
     private String email;
     private String role;
 
+    // Constructor
+    public UserReadDTO(Long userId, String email, String role) {
+        this.userId = userId;
+        this.email = email;
+        this.role = role;
+    }
+
     // Getters and Setters
     public Long getUserId() {
         return userId;

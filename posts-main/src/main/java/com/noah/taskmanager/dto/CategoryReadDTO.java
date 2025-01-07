@@ -4,6 +4,12 @@ public class CategoryReadDTO {
     private Long categoryId;
     private String categoryName;
 
+    // Constructor
+    public CategoryReadDTO(Long categoryId, String categoryName) {
+        this.categoryId = categoryId;
+        this.categoryName = categoryName;
+    }
+
     // Getters and Setters
     public Long getCategoryId() {
         return categoryId;

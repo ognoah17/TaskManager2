@@ -31,11 +31,10 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public Category updateCategory(Long id, Category updatedCategory) {
-        Category existingCategory = getCategoryById(id);
-        existingCategory.setCategoryName(updatedCategory.getCategoryName());
-        return categoryRepository.save(existingCategory);
+    public Category updateCategory(Category category) {
+        return categoryRepository.save(category);
     }
+
 
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
