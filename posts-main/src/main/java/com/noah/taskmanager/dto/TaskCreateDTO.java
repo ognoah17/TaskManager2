@@ -3,7 +3,7 @@ package com.noah.taskmanager.dto;
 import java.time.LocalDateTime;
 
 public class TaskCreateDTO {
-    private String taskName;
+    private String taskname;
     private String description;
     private String priority;
     private LocalDateTime dueDate;
@@ -11,11 +11,11 @@ public class TaskCreateDTO {
 
     // Getters and Setters
     public String getTaskName() {
-        return taskName;
+        return taskname;
     }
 
-    public void setTaskName(String taskName) {
-        this.taskName = taskName;
+    public void setTaskName(String taskname) {
+        this.taskname = taskname;
     }
 
     public String getDescription() {

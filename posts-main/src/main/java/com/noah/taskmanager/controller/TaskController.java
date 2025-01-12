@@ -1,8 +1,10 @@
 package com.noah.taskmanager.controller;
 
+import com.noah.taskmanager.dto.TaskCreateDTO;
+import com.noah.taskmanager.dto.TaskReadDTO;
+import com.noah.taskmanager.dto.TaskUpdateDTO;
+import com.noah.taskmanager.mapper.TaskMapper;
 import com.noah.taskmanager.model.TaskEntity;
-import com.noah.taskmanager.model.enumEntity.TaskPriority;
-import com.noah.taskmanager.model.enumEntity.TaskStatus;
 import com.noah.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -17,94 +19,56 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, TaskMapper taskMapper) {
         this.taskService = taskService;
+        this.taskMapper = taskMapper;
     }
 
-    /**
-     * Get all tasks.
-     */
     @GetMapping
-    public ResponseEntity<List<TaskEntity>> getTasks() {
+    public ResponseEntity<List<TaskReadDTO>> getTasks() {
         List<TaskEntity> tasks = taskService.getAllTasks();
-        return ResponseEntity.ok(tasks);
+        List<TaskReadDTO> taskDTOs = tasks.stream()
+                .map(taskMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(taskDTOs);
     }
 
-    /**
-     * Get tasks for a specific user.
-     */
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TaskEntity>> getTasksByUserId(@PathVariable Long userId) {
-        List<TaskEntity> tasks = taskService.getTasksByUserId(userId);
-        return ResponseEntity.ok(tasks);
+    @GetMapping("/{id}")
+    public ResponseEntity<TaskReadDTO> getTaskById(@PathVariable Long id) {
+        TaskEntity task = taskService.getTaskById(id);
+        TaskReadDTO taskDTO = taskMapper.toDTO(task);
+        return ResponseEntity.ok(taskDTO);
     }
 
-    /**
-     * Create a new task.
-     */
     @PostMapping
-    public ResponseEntity<TaskEntity> createTask(@Valid @RequestBody TaskEntity taskEntity) {
+    public ResponseEntity<TaskReadDTO> createTask(@Valid @RequestBody TaskCreateDTO taskCreateDTO) {
+        TaskEntity taskEntity = taskMapper.toEntity(taskCreateDTO);
         TaskEntity createdTask = taskService.createTask(taskEntity);
-        System.out.println("Task created: " + createdTask); // Debug logging
+        TaskReadDTO taskReadDTO = taskMapper.toDTO(createdTask);
+
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdTask.getTaskid())
                 .toUri();
-        System.out.println("Location URI: " + location); // Debug logging
-        return ResponseEntity.created(location).body(createdTask);
+        return ResponseEntity.created(location).body(taskReadDTO);
     }
 
-
-    /**
-     * Update an existing task.
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<TaskEntity> updateTask(
+    public ResponseEntity<TaskReadDTO> updateTask(
             @PathVariable Long id,
-            @Valid @RequestBody TaskEntity taskEntity
-    ) {
-        // Delegate the update logic to the service
-        TaskEntity updatedTask = taskService.updateTask(id, taskEntity);
-
-        // Return the updated task with status 200 OK
-        return ResponseEntity.ok(updatedTask);
+            @Valid @RequestBody TaskUpdateDTO taskUpdateDTO) {
+        TaskEntity existingTask = taskService.getTaskById(id);
+        taskMapper.updateEntityFromDTO(taskUpdateDTO, existingTask);
+        TaskEntity updatedTask = taskService.updateTask(id, existingTask);
+        return ResponseEntity.ok(taskMapper.toDTO(updatedTask));
     }
 
-    /**
-     * Delete a task by ID.
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * Get overdue tasks by status.
-     */
-    @GetMapping("/overdue")
-    public ResponseEntity<List<TaskEntity>> getOverdueTasks(@RequestParam TaskStatus status) {
-        List<TaskEntity> overdueTasks = taskService.getOverdueTasks(status);
-        return ResponseEntity.ok(overdueTasks);
-    }
-
-    /**
-     * Get tasks by priority.
-     */
-    @GetMapping("/priority/{priority}")
-    public ResponseEntity<List<TaskEntity>> getTasksByPriority(@PathVariable TaskPriority priority) {
-        List<TaskEntity> tasks = taskService.getTasksByPriority(priority);
-        return ResponseEntity.ok(tasks);
-    }
-
-    /**
-     * Get a task by its ID.
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<TaskEntity> getTaskById(@PathVariable Long id) {
-        TaskEntity task = taskService.getTaskById(id);
-        return task != null ? ResponseEntity.ok(task) : ResponseEntity.notFound().build();
     }
 }

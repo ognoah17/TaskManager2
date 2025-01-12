@@ -20,7 +20,7 @@ public class Category {
     @NaturalId
     @NotNull(message = "Category name cannot be null.")
     @Size(min = 1, max = 255, message = "Category name must be between 1 and 255 characters.")
-    @Column(nullable = false, unique = true, name = "category_name")
+    @Column(nullable = false, unique = true, name = "categoryname")
     private String categoryName;
 
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY)

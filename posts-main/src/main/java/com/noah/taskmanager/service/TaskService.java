@@ -4,7 +4,9 @@ import com.noah.taskmanager.model.TaskEntity;
 import com.noah.taskmanager.model.enumEntity.TaskPriority;
 import com.noah.taskmanager.model.enumEntity.TaskStatus;
 import com.noah.taskmanager.repository.TaskRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -75,13 +77,11 @@ public class TaskService {
         return taskRepository.findByPriority(priority);
     }
 
-    /**
-     * Get a task by its ID.
-     */
     public TaskEntity getTaskById(Long id) {
         return taskRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found with id: " + id));
     }
+
 
     /**
      * Get all tasks.

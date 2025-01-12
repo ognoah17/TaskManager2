@@ -3,11 +3,9 @@ package com.noah.taskmanager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.noah.taskmanager.config.TestSecurityConfig;
-import com.noah.taskmanager.model.TaskEntity;
-import com.noah.taskmanager.model.User;
-import com.noah.taskmanager.model.enumEntity.Role;
-import com.noah.taskmanager.model.enumEntity.TaskPriority;
-import com.noah.taskmanager.model.enumEntity.TaskStatus;
+import com.noah.taskmanager.dto.TaskCreateDTO;
+import com.noah.taskmanager.dto.TaskReadDTO;
+import com.noah.taskmanager.dto.TaskUpdateDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,21 +20,28 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
 @Import(TestSecurityConfig.class)
+@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class TaskControllerIntegrationTest2 {
+class TaskControllerTest {
 
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:16.0")
             .withDatabaseName("testdb")
             .withUsername("testuser")
-            .withPassword("testpassword")
-            .withReuse(false);
+            .withPassword("testpassword");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
+        registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
+        registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+    }
 
     @LocalServerPort
     private int port;
@@ -50,107 +55,132 @@ class TaskControllerIntegrationTest2 {
         return "http://localhost:" + port + path;
     }
 
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
-        registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+    /**
+     * Test GET /api/tasks.
+     */
+    @Test
+    void testGetTasks() {
+        ResponseEntity<TaskReadDTO[]> response = restTemplate.getForEntity(baseUrl("/api/tasks"), TaskReadDTO[].class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        System.out.println("Tasks: " + List.of(response.getBody()));
     }
 
+    /**
+     * Test GET /api/tasks/{id}.
+     */
     @Test
-    void testJsonSerialization() throws Exception {
-        User user = new User(1L, "test@example.com", "password", Role.USER);
-        TaskEntity task = new TaskEntity("Test Task", "Description", TaskPriority.HIGH, LocalDateTime.now(), TaskStatus.PENDING, user);
+    void testGetTaskById() {
+        // Create a task
+        TaskReadDTO createdTask = createTaskForTest();
 
-        String json = objectMapper.writeValueAsString(task);
-        System.out.println("Serialized JSON: " + json);
-
-        TaskEntity deserializedTask = objectMapper.readValue(json, TaskEntity.class);
-        assertThat(deserializedTask).isNotNull();
-    }
-
-    @Test
-    void testCreateTask() {
-        String randomEmail = "test+" + UUID.randomUUID() + "@example.com";
-
-        // Step 1: Create a mock User object
-        User mockUser = new User(1L, randomEmail, "password", Role.USER);
-        ResponseEntity<User> userResponse = restTemplate.postForEntity(baseUrl("/api/users"), mockUser, User.class);
-
-        // Step 2: Create a TaskEntity object with the mock User
-        LocalDateTime dueDate = LocalDateTime.now().plusDays(1);
-        TaskEntity task = new TaskEntity("Test Task", "Description", TaskPriority.HIGH, dueDate, TaskStatus.PENDING, userResponse.getBody());
-
-        // Step 3: Send the POST request to create the Task
-        ResponseEntity<TaskEntity> response = restTemplate.postForEntity(baseUrl("/api/tasks"), task, TaskEntity.class);
+        // Retrieve the task
+        ResponseEntity<TaskReadDTO> response = restTemplate.getForEntity(baseUrl("/api/tasks/" + createdTask.getTaskId()), TaskReadDTO.class);
 
         // Assertions
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
-
-        System.out.println("Created Task: " + response.getBody());
+        assertThat(response.getBody().getTaskId()).isEqualTo(createdTask.getTaskId());
+        System.out.println("Retrieved Task: " + response.getBody());
     }
 
+    /**
+     * Test POST /api/tasks.
+     */
+    @Test
+    void testCreateTask() {
+        TaskReadDTO createdTask = createTaskForTest();
+        assertThat(createdTask).isNotNull();
+    }
+
+    /**
+     * Test PUT /api/tasks/{id}.
+     */
     @Test
     void testUpdateTask() {
-        // Step 0: Ensure no tasks exist initially
-        ResponseEntity<TaskEntity[]> initialTaskResponse = restTemplate.getForEntity(baseUrl("/api/tasks"), TaskEntity[].class);
-        assertThat(initialTaskResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(initialTaskResponse.getBody()).isEmpty();
+        // Create a task
+        TaskReadDTO createdTask = createTaskForTest();
 
-        // Step 1: Create a User
-        String randomEmail = "test+" + UUID.randomUUID() + "@example.com";
-        User mockUser = new User(1L, randomEmail, "password", Role.USER);
-        ResponseEntity<User> userResponse = restTemplate.postForEntity(baseUrl("/api/users"), mockUser, User.class);
+        // Update details
+        TaskUpdateDTO taskUpdateDTO = new TaskUpdateDTO();
+        taskUpdateDTO.setTaskName("Updated Task Name");
+        taskUpdateDTO.setPriority("LOW");
+        taskUpdateDTO.setDescription("Updated Description");
+        taskUpdateDTO.setStatus("COMPLETED");
 
-        // Step 2: Create a TaskEntity
-        LocalDateTime dueDate = LocalDateTime.now().plusDays(1);
-        TaskEntity task = new TaskEntity("Test Task", "Description", TaskPriority.HIGH, dueDate, TaskStatus.PENDING, userResponse.getBody());
-        ResponseEntity<TaskEntity> createResponse = restTemplate.postForEntity(baseUrl("/api/tasks"), task, TaskEntity.class);
-        TaskEntity createdTask = createResponse.getBody();
-
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(createdTask).isNotNull();
-
-        // Step 3: Update the TaskEntity
-        createdTask.setTaskname("Updated Task Name");
-        createdTask.setPriority(TaskPriority.LOW);
+        // Send update request
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<TaskEntity> updateRequest = new HttpEntity<>(createdTask, headers);
+        HttpEntity<TaskUpdateDTO> request = new HttpEntity<>(taskUpdateDTO, headers);
 
-        ResponseEntity<TaskEntity> updateResponse = restTemplate.exchange(
-                baseUrl("/api/tasks/" + createdTask.getTaskid()),
+        ResponseEntity<TaskReadDTO> response = restTemplate.exchange(
+                baseUrl("/api/tasks/" + createdTask.getTaskId()),
                 HttpMethod.PUT,
-                updateRequest,
-                TaskEntity.class
+                request,
+                TaskReadDTO.class
         );
 
         // Assertions
-        assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(updateResponse.getBody()).isNotNull();
-
-        System.out.println("Updated Task: " + updateResponse.getBody());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTaskName()).isEqualTo("Updated Task Name");
+        assertThat(response.getBody().getPriority()).isEqualTo("LOW");
+        System.out.println("Updated Task: " + response.getBody());
     }
 
+    /**
+     * Test DELETE /api/tasks/{id}.
+     */
     @Test
     void testDeleteTask() {
-        // Step 1: Create a User
-        String randomEmail = "test+" + UUID.randomUUID() + "@example.com";
-        User mockUser = new User(1L, randomEmail, "password", Role.USER);
-        ResponseEntity<User> userResponse = restTemplate.postForEntity(baseUrl("/api/users"), mockUser, User.class);
-        assertThat(userResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(userResponse.getBody()).isNotNull();
+        // Create a task
+        TaskReadDTO createdTask = createTaskForTest();
+        System.out.println("Created Task ID: " + createdTask.getTaskId());
 
-        // Step 2: Create a TaskEntity
-        LocalDateTime dueDate = LocalDateTime.now().plusDays(1);
-        TaskEntity task = new TaskEntity("Task to Delete", "Description", TaskPriority.MEDIUM, dueDate, TaskStatus.PENDING, userResponse.getBody());
-        ResponseEntity<TaskEntity> createResponse = restTemplate.postForEntity(baseUrl("/api/tasks"), task, TaskEntity.class);
-        assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(createResponse.getBody()).isNotNull();
+        // Delete the task
+        ResponseEntity<Void> deleteResponse = restTemplate.exchange(
+                baseUrl("/api/tasks/" + createdTask.getTaskId()),
+                HttpMethod.DELETE,
+                null,
+                Void.class
+        );
 
-        TaskEntity createdTask = createResponse.getBody();
-        System.out.println("Mock Task Created: " + createdTask);
+        // Verify deletion response
+        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        System.out.println("Deleted Task ID: " + createdTask.getTaskId());
+
+        // Attempt to retrieve the deleted task
+        ResponseEntity<TaskReadDTO> getResponse = restTemplate.getForEntity(
+                baseUrl("/api/tasks/" + createdTask.getTaskId()),
+                TaskReadDTO.class
+        );
+
+        // Verify the task is not found
+        assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        System.out.println("Task ID " + createdTask.getTaskId() + " not found as expected after deletion.");
     }
 
+
+    /**
+     * Helper method to create a task for testing.
+     */
+    private TaskReadDTO createTaskForTest() {
+        // Create a TaskCreateDTO
+        TaskCreateDTO taskCreateDTO = new TaskCreateDTO();
+        taskCreateDTO.setTaskName("Test Task");
+        taskCreateDTO.setDescription("This is a test task");
+        taskCreateDTO.setPriority("HIGH");
+        taskCreateDTO.setDueDate(LocalDateTime.now().plusDays(1));
+        taskCreateDTO.setUserId(1L);
+
+        // Send the POST request
+        ResponseEntity<TaskReadDTO> response = restTemplate.postForEntity(baseUrl("/api/tasks"), taskCreateDTO, TaskReadDTO.class);
+
+        // Assertions
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        TaskReadDTO responseBody = response.getBody();
+        assertThat(responseBody).isNotNull();
+        System.out.println("Created Task: " + responseBody);
+        return responseBody;
+    }
 }
