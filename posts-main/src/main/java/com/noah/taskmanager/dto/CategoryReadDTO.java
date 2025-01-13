@@ -4,6 +4,11 @@ public class CategoryReadDTO {
     private Long categoryId;
     private String categoryName;
 
+    // Default Constructor
+    public CategoryReadDTO() {
+        // Default no-argument constructor
+    }
+
     // Constructor
     public CategoryReadDTO(Long categoryId, String categoryName) {
         this.categoryId = categoryId;

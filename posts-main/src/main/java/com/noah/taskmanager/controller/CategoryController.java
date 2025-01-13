@@ -6,10 +6,13 @@ import com.noah.taskmanager.dto.CategoryUpdateDTO;
 import com.noah.taskmanager.mapper.CategoryMapper;
 import com.noah.taskmanager.model.Category;
 import com.noah.taskmanager.service.CategoryService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,8 +46,12 @@ public class CategoryController {
     public ResponseEntity<CategoryReadDTO> createCategory(@Valid @RequestBody CategoryCreateDTO categoryCreateDTO) {
         Category category = categoryMapper.toEntity(categoryCreateDTO);
         Category createdCategory = categoryService.createCategory(category);
-        return ResponseEntity.ok(categoryMapper.toDTO(createdCategory));
+        return ResponseEntity
+                .created(URI.create("/api/categories/" + createdCategory.getCategoryId()))
+                .body(categoryMapper.toDTO(createdCategory));
     }
+
+
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoryReadDTO> updateCategory(
