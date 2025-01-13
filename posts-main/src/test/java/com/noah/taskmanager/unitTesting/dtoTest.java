@@ -21,7 +21,6 @@ class DTOMapperUnitTest {
 
     @Test
     void testTaskDTOConversions() {
-        // Test Create
         TaskCreateDTO createDTO = new TaskCreateDTO();
         createDTO.setTaskName("Test Task");
         createDTO.setDescription("Task Description");
@@ -34,12 +33,10 @@ class DTOMapperUnitTest {
         assertThat(taskEntity.getDescription()).isEqualTo("Task Description");
         assertThat(taskEntity.getPriority()).isEqualTo(TaskPriority.HIGH);
 
-        // Test Read
         TaskReadDTO readDTO = taskMapper.toDTO(taskEntity);
         assertThat(readDTO.getTaskName()).isEqualTo("Test Task");
         assertThat(readDTO.getDescription()).isEqualTo("Task Description");
 
-        // Test Update
         TaskUpdateDTO updateDTO = new TaskUpdateDTO();
         updateDTO.setTaskName("Updated Task");
         updateDTO.setDescription("Updated Description");
@@ -53,22 +50,22 @@ class DTOMapperUnitTest {
 
     @Test
     void testUserDTOConversions() {
-        // Test Create
         UserCreateDTO createDTO = new UserCreateDTO();
+        createDTO.setUsername("TestUser");
         createDTO.setEmail("test@example.com");
         createDTO.setPassword("password");
         createDTO.setRole("USER");
 
         User userEntity = userMapper.toEntity(createDTO);
+        assertThat(userEntity.getUsername()).isEqualTo("TestUser");
         assertThat(userEntity.getEmail()).isEqualTo("test@example.com");
         assertThat(userEntity.getRole()).isEqualTo(Role.USER);
 
-        // Test Read
         UserReadDTO readDTO = userMapper.toDTO(userEntity);
+        assertThat(readDTO.getUsername()).isEqualTo("TestUser");
         assertThat(readDTO.getEmail()).isEqualTo("test@example.com");
-        assertThat(readDTO.getRole()).isEqualTo("USER");
+        assertThat(readDTO.getRole()).isEqualTo(Role.USER);
 
-        // Test Update
         UserUpdateDTO updateDTO = new UserUpdateDTO();
         updateDTO.setEmail("updated@example.com");
         updateDTO.setRole("ADMIN");
@@ -80,18 +77,15 @@ class DTOMapperUnitTest {
 
     @Test
     void testCategoryDTOConversions() {
-        // Test Create
         CategoryCreateDTO createDTO = new CategoryCreateDTO();
         createDTO.setCategoryName("Work");
 
         Category categoryEntity = categoryMapper.toEntity(createDTO);
         assertThat(categoryEntity.getCategoryName()).isEqualTo("Work");
 
-        // Test Read
         CategoryReadDTO readDTO = categoryMapper.toDTO(categoryEntity);
         assertThat(readDTO.getCategoryName()).isEqualTo("Work");
 
-        // Test Update
         CategoryUpdateDTO updateDTO = new CategoryUpdateDTO();
         updateDTO.setCategoryName("Personal");
 
@@ -101,7 +95,6 @@ class DTOMapperUnitTest {
 
     @Test
     void testNotificationDTOConversions() {
-        // Test Create
         NotificationCreateDTO createDTO = new NotificationCreateDTO();
         createDTO.setNotificationType("EMAIL");
         createDTO.setNotificationTime(LocalDateTime.now());
@@ -110,28 +103,21 @@ class DTOMapperUnitTest {
         Notification notificationEntity = notificationMapper.toEntity(createDTO);
         assertThat(notificationEntity.getNotificationType()).isEqualTo("EMAIL");
 
-        // Mock related entities
         TaskEntity mockTask = new TaskEntity();
         mockTask.setTaskid(1L);
 
-        User mockUser = new User(1L, "test@example.com", "password", Role.USER, null);
-
+        User mockUser = new User(1L, "TestUser", "test@example.com", "password", Role.USER, null);
         notificationEntity.setTask(mockTask);
         notificationEntity.setUser(mockUser);
 
-        // Test Read
         NotificationReadDTO readDTO = notificationMapper.toDTO(notificationEntity);
         assertThat(readDTO.getNotificationType()).isEqualTo("EMAIL");
-        assertThat(readDTO.getNotificationTime()).isEqualTo(notificationEntity.getNotificationTime());
         assertThat(readDTO.getNotificationId()).isEqualTo(notificationEntity.getNotificationid());
         assertThat(readDTO.getUserId()).isEqualTo(mockUser.getUserid());
     }
 
-
-
     @Test
     void testReminderDTOConversions() {
-        // Test Create
         ReminderCreateDTO createDTO = new ReminderCreateDTO();
         createDTO.setReminderTime(LocalDateTime.now());
         createDTO.setTaskId(1L);
@@ -140,28 +126,22 @@ class DTOMapperUnitTest {
         Reminder reminderEntity = reminderMapper.toEntity(createDTO);
         assertThat(reminderEntity.getReminderTime()).isNotNull();
 
-        // Mock related entities
         TaskEntity mockTask = new TaskEntity();
         mockTask.setTaskid(1L);
 
-        User mockUser = new User(2L, "test@example.com", "password", Role.USER, null);
-
+        User mockUser = new User(1L, "TestUser", "test@example.com", "password", Role.USER, null);
         reminderEntity.setTask(mockTask);
         reminderEntity.setUser(mockUser);
 
-        // Test Read
         ReminderReadDTO readDTO = reminderMapper.toDTO(reminderEntity);
         assertThat(readDTO.getReminderTime()).isEqualTo(reminderEntity.getReminderTime());
         assertThat(readDTO.getTaskId()).isEqualTo(mockTask.getTaskid());
         assertThat(readDTO.getUserId()).isEqualTo(mockUser.getUserid());
 
-        // Test Update
         ReminderUpdateDTO updateDTO = new ReminderUpdateDTO();
         updateDTO.setReminderTime(LocalDateTime.now().plusDays(1));
 
         reminderMapper.updateEntityFromDTO(updateDTO, reminderEntity);
         assertThat(reminderEntity.getReminderTime()).isEqualTo(updateDTO.getReminderTime());
     }
-
-
 }

@@ -52,7 +52,3 @@ task_id INT REFERENCES tasks(task_id) ON DELETE CASCADE,
 category_id INT REFERENCES categories(category_id) ON DELETE CASCADE,
 PRIMARY KEY (task_id, category_id)
 );
-
--- Add username to the INSERT statement
-INSERT INTO users (user_id, username, email, password, role)
-VALUES (1, 'testuser', 'test@example.com', 'password', 'USER');

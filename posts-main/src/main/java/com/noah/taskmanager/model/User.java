@@ -23,6 +23,11 @@ public class User {
     @Column(name = "user_id")
     private Long userid;
 
+    @NotNull(message = "Username cannot be null.")
+    @Size(min = 3, message = "Username must be at least 3 characters long.")
+    @Column(nullable = false, length = 255)
+    private String username;
+
     @NotNull(message = "Email cannot be null.")
     @Email(message = "Email should be valid.")
     @Column(nullable = false, unique = true, length = 255)
@@ -48,17 +53,18 @@ public class User {
     }
 
     // Constructor without tasks
-    public User(Long userid, String email, String password, Role role) {
+    public User(Long userid, String username, String email, String password, Role role) {
         this.userid = userid;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
-        this.tasks = new HashSet<>();
     }
 
     // Full Constructor
-    public User(Long userid, String email, String password, Role role, Set<TaskEntity> tasks) {
+    public User(Long userid, String username, String email, String password, Role role, Set<TaskEntity> tasks) {
         this.userid = userid;
+        this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
@@ -81,6 +87,14 @@ public class User {
 
     public void setUserid(Long userid) {
         this.userid = userid;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getEmail() {
@@ -115,10 +129,12 @@ public class User {
         this.tasks = tasks;
     }
 
+    // Overridden toString for better logging/debugging
     @Override
     public String toString() {
         return "User{" +
                 "userid=" + userid +
+                ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", role=" + role +
                 '}';

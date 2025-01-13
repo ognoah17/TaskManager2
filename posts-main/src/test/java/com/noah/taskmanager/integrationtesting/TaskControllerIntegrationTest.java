@@ -1,4 +1,4 @@
-package com.noah.taskmanager;
+package com.noah.taskmanager.integrationtesting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(TestSecurityConfig.class)
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class TaskControllerTest {
+class TaskControllerIntegrationTest {
 
     @Container
     private static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:16.0")

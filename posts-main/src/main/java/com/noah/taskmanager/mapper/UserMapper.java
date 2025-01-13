@@ -13,9 +13,10 @@ public class UserMapper {
     public User toEntity(UserCreateDTO dto) {
         return new User(
                 null, // ID will be auto-generated
+                dto.getUsername(), // Map username
                 dto.getEmail(),
                 dto.getPassword(),
-                Role.valueOf(dto.getRole()),
+                Role.valueOf(dto.getRole()), // Convert String to Role enum
                 null // Tasks will be managed separately
         );
     }
@@ -23,13 +24,14 @@ public class UserMapper {
     public UserReadDTO toDTO(User user) {
         return new UserReadDTO(
                 user.getUserid(),
+                user.getUsername(),
                 user.getEmail(),
-                user.getRole().toString()
+                user.getRole() // Map Role enum directly
         );
     }
 
     public void updateEntityFromDTO(UserUpdateDTO dto, User user) {
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
-        if (dto.getRole() != null) user.setRole(Role.valueOf(dto.getRole()));
+        if (dto.getRole() != null) user.setRole(Role.valueOf(dto.getRole())); // Convert String to Role enum
     }
 }
