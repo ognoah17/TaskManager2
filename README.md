@@ -125,7 +125,3 @@ Integration tests are implemented to ensure end-to-end functionality, including:
 - Verifying API endpoints using tools like **JUnit** and **MockMvc**.
 - Database testing to ensure correct persistence and retrieval of data.
 - Postman scripts for manual testing of API workflows.
-
---- 
-
-This markdown is formatted for clear readability in markdown-supported editors. Let me know if you need further edits!
